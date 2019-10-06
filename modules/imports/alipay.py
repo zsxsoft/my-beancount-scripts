@@ -55,7 +55,7 @@ class Alipay(Base):
 			entry = Transaction(
 				meta,
 				date(time.year, time.month, time.day),
-				flag, 
+				flag,
 				row['交易对方'],
 				row['商品名称'],
 				data.EMPTY_SET,
@@ -78,7 +78,7 @@ class Alipay(Base):
 
 			if (row['服务费（元）'] != '0.00'):
 				data.create_simple_posting(entry, 'Expenses:Fee', row['服务费（元）'], 'CNY')
-			
+
 			#b = printer.format_entry(entry)
 			#print(b)
 			if not self.deduplicate.find_duplicate(entry, amount):

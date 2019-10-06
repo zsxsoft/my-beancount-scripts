@@ -32,7 +32,7 @@ def get_income_account_by_guess (from_user, description, time = None):
 	return "Income:Unknown"
 
 class DictReaderStrip(csv.DictReader):
-    @property                                    
+    @property
     def fieldnames(self):
         if self._fieldnames is None:
             # Initialize self._fieldnames

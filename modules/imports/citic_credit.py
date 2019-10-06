@@ -64,7 +64,7 @@ class CITICCredit():
 			entry = Transaction(
 				meta,
 				time,
-				flag, 
+				flag,
 				description,
 				None,
 				data.EMPTY_SET,

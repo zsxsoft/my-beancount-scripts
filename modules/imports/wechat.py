@@ -58,14 +58,16 @@ class WeChat(Base):
 			entry = Transaction(
 				meta,
 				date(time.year, time.month, time.day),
-				'*', 
+				'*',
 				row['交易对方'],
 				row['商品'],
 				data.EMPTY_SET,
 				data.EMPTY_SET, []
 			)
 
-			if row['当前状态'] == '支付成功':
+			status = row['当前状态']
+
+			if status == '支付成功' or status == '已全额退款' or '已退款' in status:
 				if '转入零钱通' in row['交易类型']:
 					entry = entry._replace(payee = '')
 					entry = entry._replace(narration = '转入零钱通')
@@ -76,7 +78,8 @@ class WeChat(Base):
 						entry = replace_flag(entry, '!')
 					data.create_simple_posting(entry, account, amount_string, 'CNY')
 				data.create_simple_posting(entry, accounts[row['支付方式']], None, None)
-				amount = -amount
+				if not row['当前状态'] == '已全额退款':
+					amount = -amount
 			elif row['当前状态'] == '已存入零钱':
 				if '微信红包' in row['交易类型']:
 					data.create_simple_posting(entry, Account红包, amount_string, 'CNY')
@@ -88,11 +91,11 @@ class WeChat(Base):
 				data.create_simple_posting(entry, Account余额, None, None)
 			else:
 				print('Unknown row', row)
-			
+
 			#b = printer.format_entry(entry)
 			#print(b)
 			if not self.deduplicate.find_duplicate(entry, amount):
 				transactions.append(entry)
-				
+
 		self.deduplicate.apply_beans()
 		return transactions
