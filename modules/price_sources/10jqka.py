@@ -44,16 +44,20 @@ class Source(source.Source):
             data = json.loads(content)
             price = 0
             date_int = int(date_string)
-            if date_string == "0":
-                item = data[len(data) - 1]
-                price = item[1]
-                date = item[0]
-            else:
+            found_date = False
+
+            if date_string != "0":
                 for item in data:
                     if item[0] == date_string or int(item[0]) > date_int:
                         date = item[0]
                         price = item[1]
+                        found_date = True
                         break
+
+            if not found_date:
+                item = data[len(data) - 1]
+                price = item[1]
+                date = item[0]
 
             parsed_date = parse_date_liberally(date)
             date = datetime(parsed_date.year, parsed_date.month, parsed_date.day, tzinfo=utc)
