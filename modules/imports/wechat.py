@@ -94,7 +94,7 @@ class WeChat(Base):
 
 			#b = printer.format_entry(entry)
 			#print(b)
-			if not self.deduplicate.find_duplicate(entry, amount):
+			if not self.deduplicate.find_duplicate(entry, amount, 'wechat_trade_no'):
 				transactions.append(entry)
 
 		self.deduplicate.apply_beans()

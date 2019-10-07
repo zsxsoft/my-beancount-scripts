@@ -72,7 +72,7 @@ class CITICCredit():
 			)
 			data.create_simple_posting(entry, account, trade_price, trade_currency)
 			data.create_simple_posting(entry, Account中信, None, None)
-			if not self.deduplicate.find_duplicate(entry, amount, Account中信):
+			if not self.deduplicate.find_duplicate(entry, -amount, None, Account中信):
 				transactions.append(entry)
 
 		self.deduplicate.apply_beans()

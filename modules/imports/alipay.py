@@ -29,11 +29,16 @@ class Alipay(Base):
 		reader = DictReaderStrip(f, delimiter=',')
 		transactions = []
 		for row in reader:
-			print("Importing {} at {}".format(row['商品名称'], row['最近修改时间']))
+			if row['交易状态'] == '交易关闭':
+				continue
+			time = row['付款时间']
+			if time == '':
+				time = row['交易创建时间']
+			print("Importing {} at {}".format(row['商品名称'], time))
 			meta = {}
-			time = dateparser.parse(row['最近修改时间'])
+			time = dateparser.parse(time)
 			meta['alipay_trade_no'] = row['交易号']
-			meta['trade_time'] = row['最近修改时间']
+			meta['trade_time'] = time
 			meta['timestamp'] = str(time.timestamp()).replace('.0', '')
 			account = get_account_by_guess(row['交易对方'], row['商品名称'], time)
 			flag = "*"
@@ -46,6 +51,7 @@ class Alipay(Base):
 
 			if row['商家订单号'] != '':
 				meta['shop_trade_no'] = row['商家订单号']
+
 
 			meta = data.new_metadata(
 				'beancount/core/testing.beancount',
@@ -81,7 +87,7 @@ class Alipay(Base):
 
 			#b = printer.format_entry(entry)
 			#print(b)
-			if not self.deduplicate.find_duplicate(entry, amount):
+			if not self.deduplicate.find_duplicate(entry, amount, 'alipay_trade_no'):
 				transactions.append(entry)
 
 		self.deduplicate.apply_beans()

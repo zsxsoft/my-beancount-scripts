@@ -83,7 +83,7 @@ class CMBCCredit():
 				)
 				data.create_simple_posting(entry, account, price, currency)
 				data.create_simple_posting(entry, Account民生, None, None)
-				if not self.deduplicate.find_duplicate(entry, amount, Account民生):
+				if not self.deduplicate.find_duplicate(entry, -amount, None, Account民生):
 					transactions.append(entry)
 
 		self.deduplicate.apply_beans()
