@@ -38,7 +38,7 @@ class Alipay(Base):
 			meta = {}
 			time = dateparser.parse(time)
 			meta['alipay_trade_no'] = row['交易号']
-			meta['trade_time'] = time
+			meta['trade_time'] = str(time)
 			meta['timestamp'] = str(time.timestamp()).replace('.0', '')
 			account = get_account_by_guess(row['交易对方'], row['商品名称'], time)
 			flag = "*"

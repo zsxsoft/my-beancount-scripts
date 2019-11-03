@@ -82,13 +82,13 @@ class WeChat(Base):
 					amount = -amount
 			elif row['当前状态'] == '已存入零钱':
 				if '微信红包' in row['交易类型']:
-					data.create_simple_posting(entry, Account红包, amount_string, 'CNY')
+					data.create_simple_posting(entry, Account红包, None, 'CNY')
 				else:
 					income = get_income_account_by_guess(row['交易对方'], row['商品'], time)
 					if income == 'Income:Unknown':
 						entry = replace_flag(entry, '!')
-					data.create_simple_posting(entry, income, amount_string, 'CNY')
-				data.create_simple_posting(entry, Account余额, None, None)
+					data.create_simple_posting(entry, income, None, 'CNY')
+				data.create_simple_posting(entry, Account余额, amount_string, 'CNY')
 			else:
 				print('Unknown row', row)
 
