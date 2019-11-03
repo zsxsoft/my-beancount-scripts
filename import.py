@@ -5,6 +5,9 @@ from beancount import loader
 from modules.imports.alipay import Alipay
 from modules.imports.wechat import WeChat
 from modules.imports.citic_credit import CITICCredit
+from modules.imports.cmbc_credit import CMBCCredit
+from modules.imports.icbc_debit import ICBCDebit
+from modules.imports.yuebao import YuEBao
 import re
 import argparse
 
@@ -16,7 +19,7 @@ args = parser.parse_args()
 
 entries, errors, option_map = loader.load_file(args.entry)
 
-importers = [Alipay, WeChat, CITICCredit]
+importers = [Alipay, WeChat, CITICCredit, CMBCCredit, YuEBao, ICBCDebit]
 instance = None
 for importer in importers:
 	try:
@@ -24,7 +27,7 @@ for importer in importers:
 			file_bytes = f.read()
 			instance = importer(args.path, file_bytes, entries, option_map)
 		break
-	except:
+	except Exception as e:
 		pass
 
 if instance == None:

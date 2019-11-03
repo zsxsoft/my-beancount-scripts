@@ -31,6 +31,12 @@ def get_income_account_by_guess (from_user, description, time = None):
 			break
 	return "Income:Unknown"
 
+def get_account_by_name (name, time = None):
+    if accounts.get(name, '') == '':
+	    return "Unknown:" + name
+    else:
+        return accounts.get(name)
+
 class DictReaderStrip(csv.DictReader):
     @property
     def fieldnames(self):
