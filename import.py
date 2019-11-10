@@ -6,6 +6,7 @@ from modules.imports.alipay import Alipay
 from modules.imports.wechat import WeChat
 from modules.imports.citic_credit import CITICCredit
 from modules.imports.cmbc_credit import CMBCCredit
+from modules.imports.cmb_credit import CMBCredit
 from modules.imports.icbc_debit import ICBCDebit
 from modules.imports.yuebao import YuEBao
 import re
@@ -19,7 +20,7 @@ args = parser.parse_args()
 
 entries, errors, option_map = loader.load_file(args.entry)
 
-importers = [Alipay, WeChat, CITICCredit, CMBCCredit, YuEBao, ICBCDebit]
+importers = [Alipay, WeChat, CITICCredit, CMBCCredit, CMBCredit, YuEBao, ICBCDebit]
 instance = None
 for importer in importers:
 	try:
