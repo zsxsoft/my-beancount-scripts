@@ -20,6 +20,7 @@ Beancount 我的个人自用脚本，包含以下功能：
    - 10jqka抓取同花顺数据
    - coinmarketcap抓取BTC数据
    - 中国银行（BOC）抓取人民币外汇数据
+4. 蚂蚁财富基金定投数据导入
 
 ## 使用
 
@@ -93,6 +94,24 @@ python import.py 微信支付账单\(20190802-20190902\).csv --out out.bean
 export PYTHONPATH=$(pwd)
 bean-price main.bean -d 2019-04-01
 ```
+
+#### 蚂蚁财富基金定投数据导入
+
+支付宝的「基金定投」在账单中不显示具体认购份额和净值，本repo内的``fund.py``可对其进行处理。其基于同花顺抓取的基金数据，将以下交易：
+```beancount
+2018-07-24 * "蚂蚁财富-蚂蚁（杭州）基金销售有限公司" "蚂蚁财富-XXX基金-买入"
+  Assets:Company:Alipay:Fund   200 CNY
+  Assets:Company:Alipay:Yuebao
+```
+改变为
+```beancount
+2018-07-24 * "蚂蚁财富-蚂蚁（杭州）基金销售有限公司" "蚂蚁财富-XXX基金-买入"
+  Assets:Company:Alipay:Fund 99.87 FXXXXXXX { 2.000 CNY }
+  Expenses:Finance:TradeFee 0.26 CNY
+  Equity:Deviation
+  Assets:Company:Alipay:Yuebao -200 CNY
+```
+具体使用请直接修改``fund.py``。
 
 ## 开源协议
 
