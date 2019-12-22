@@ -1,5 +1,6 @@
 import requests
 import time
+import json
 from datetime import datetime, tzinfo, timedelta
 from string import Template
 
@@ -10,9 +11,8 @@ from beancount.prices import source
 from beancount.utils.date_utils import parse_date_liberally
 
 ZERO = timedelta(0)
-BASE_URL_TEMPLATE = Template("https://coinmarketcap.com/currencies/$ticker/historical-data/?start=$date&end=$date")
+BASE_URL_TEMPLATE = Template("https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?convert=$currency&slug=$ticker&time_end=$date_end&time_start=$date_start")
 CURRENCY = "USD"
-TIME_DELAY = 1
 
 class UTCtzinfo(tzinfo):
     def utcoffset(self, dt):
@@ -32,31 +32,24 @@ class CoinmarketcapError(ValueError):
 class Source(source.Source):
     def _get_price_for_date(self, ticker, date=None):
         paramater = ticker.split("--")
-        time.sleep(TIME_DELAY)
+        currency = paramater[1].upper()
 
         if date == None:
-            date_string = ""
+            timestamp = int(datetime.today().timestamp())
         else:
-            date_string = date.strftime("%Y%m%d")
+            timestamp = int(date.timestamp())
 
-        url = BASE_URL_TEMPLATE.substitute(date=date_string, ticker=paramater[0])
+        url = BASE_URL_TEMPLATE.substitute(
+            date_start = timestamp,
+            date_end = timestamp + 1,
+            ticker = paramater[0],
+            currency = currency)
 
         try:
             content = requests.get(url).content
-            soup = BeautifulSoup(content,'html.parser')
-            table = soup.find('table', {'class': 'table'})
-            tr = table.findChildren('tr')[1]
-            data = [td.text.strip() for td in tr.findChildren('td')]
-
-            parsed_date = parse_date_liberally(data[0])
-            date = datetime(parsed_date.year, parsed_date.month, parsed_date.day, tzinfo=utc)
-
-            price = D(data[4])
-
-            rateDiv = soup.find('div', {'id': 'currency-exchange-rates'})
-            rate = D(rateDiv.get('data-' + paramater[1]))
-            price = price / rate
-
+            ret = json.loads(content)
+            quote = ret['data']['quotes'][0]['quote'][currency]
+            price = D(quote['close'])
             return source.SourcePrice(price, date, CURRENCY)
 
         except KeyError:

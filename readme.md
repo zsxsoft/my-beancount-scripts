@@ -82,10 +82,11 @@ python import.py 微信支付账单\(20190802-20190902\).csv --out out.bean
 ; 中行人民币外汇抓取
 2010-01-01 commodity JPY
   export: "JPY"
-  price: "CNY:modules.price_sources.boc/1323"
+  price: "CNY:modules.price_sources.boc/_E6_97_A5_E5_85_83"
   ; 请打开网页 http://www.boc.cn/sourcedb/whpj/
-  ; 之后打开浏览器控制台，输入：$('#pjname option').each((a, b) => console.log(b.value + ' ' + b.innerText))
-  ; 按下回车后，即可显示所有对应数字。例如，1323代表日元，1314代表英镑等。
+  ; 之后打开浏览器控制台，输入：
+  ; $('#pjname option').each((a, b) => console.log(encodeURIComponent(b.value).replace(/%/g,'_') + ' ' + b.innerText))
+  ; 按下回车后，即可显示所有对应字符串。例如，_E8_8B_B1_E9_95_91代表英镑等。
 ```
 
 ```bash

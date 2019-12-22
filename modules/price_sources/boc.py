@@ -2,7 +2,7 @@ import requests
 import time
 from datetime import datetime, tzinfo, timedelta
 from string import Template
-
+from urllib.parse import unquote
 from bs4 import BeautifulSoup
 
 from beancount.core.number import D
@@ -10,9 +10,8 @@ from beancount.prices import source
 from beancount.utils.date_utils import parse_date_liberally
 
 ZERO = timedelta(0)
-BASE_URL_TEMPLATE = "http://srh.bankofchina.com/search/whpj/search.jsp"
+BASE_URL_TEMPLATE = "https://srh.bankofchina.com/search/whpj/search_cn.jsp"
 CURRENCY = "USD"
-TIME_DELAY = 1
 
 class UTCtzinfo(tzinfo):
     def utcoffset(self, dt):
@@ -26,12 +25,11 @@ class UTCtzinfo(tzinfo):
 
 utc = UTCtzinfo()
 
-class CoinmarketcapError(ValueError):
-    "An error from the Coinmarketcap API."
+class BOCError(ValueError):
+    "An error from the BOC."
 
 class Source(source.Source):
     def _get_price_for_date(self, ticker, date=None):
-        time.sleep(TIME_DELAY)
 
         if date == None:
             start_time = datetime.today().strftime('%Y-%m-%d')
@@ -39,11 +37,15 @@ class Source(source.Source):
         else:
             start_time = date.strftime('%Y-%m-%d')
             end_time = (date + timedelta(days = 1)).strftime('%Y-%m-%d')
+
         data = {
-          'pjname': ticker,
+          'pjname': unquote(ticker.replace('_', '%')),
           'erectDate': start_time,
-          'nothing': end_time
+          'nothing': end_time,
+          'head': 'head_620.js',
+          'bottom': 'bottom_591.js'
         }
+
         try:
             content = requests.post(BASE_URL_TEMPLATE, data).content
             soup = BeautifulSoup(content,'html.parser')
@@ -61,9 +63,9 @@ class Source(source.Source):
         except Exception as e:
           raise e
         except KeyError:
-            raise CoinmarketcapError("Invalid response from BOC: {}".format(repr(content)))
+            raise BOCError("Invalid response from BOC: {}".format(repr(content)))
         except AttributeError:
-            raise CoinmarketcapError("Invalid response from BOC: {}".format(repr(content)))
+            raise BOCError("Invalid response from BOC: {}".format(repr(content)))
 
     def get_latest_price(self, ticker):
         return self._get_price_for_date(ticker, None)
