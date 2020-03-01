@@ -35,13 +35,12 @@ class Source(source.Source):
         currency = paramater[1].upper()
 
         if date == None:
-            timestamp = int(datetime.today().timestamp())
-        else:
-            timestamp = int(date.timestamp())
+            date = datetime.today().replace(hour = 0, minute = 0, second = 0) + timedelta(days = -1)
+        end_date = date + timedelta(days = 1)
 
         url = BASE_URL_TEMPLATE.substitute(
-            date_start = timestamp,
-            date_end = timestamp + 1,
+            date_start = int(date.timestamp()),
+            date_end = int(end_date.timestamp()),
             ticker = paramater[0],
             currency = currency)
 
