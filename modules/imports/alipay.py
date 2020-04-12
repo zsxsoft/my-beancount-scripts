@@ -32,6 +32,8 @@ class Alipay(Base):
         for row in reader:
             if row['交易状态'] == '交易关闭' and row['资金状态'] == '':
                 continue
+            if row['交易状态'] == '冻结成功':
+                continue
             time = row['付款时间']
             if time == '':
                 time = row['交易创建时间']
