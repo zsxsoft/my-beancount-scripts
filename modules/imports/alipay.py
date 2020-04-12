@@ -49,7 +49,7 @@ class Alipay(Base):
             account = get_account_by_guess(row['交易对方'], row['商品名称'], time)
             flag = "*"
             amount = float(row['金额（元）'])
-            if account == "Unknown":
+            if account == "Expenses:Unknown":
                 flag = "!"
 
             if row['备注'] != '':
@@ -90,7 +90,8 @@ class Alipay(Base):
                     if income == 'Income:Unknown':
                         entry = entry._replace(flag='!')
                     data.create_simple_posting(entry, income, None, None)
-                    account = Account支付宝
+                    if flag == "!":
+                        account = Account支付宝
             else:
                 print('Unknown status')
                 print(row)
