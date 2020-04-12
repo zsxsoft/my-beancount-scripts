@@ -3,39 +3,43 @@ from beancount.query.query_env import TargetsEnvironment
 from ..accounts import *
 import csv
 
-def replace_flag (entry, flag):
-	return entry._replace(flag = '!')
 
-def get_account_by_guess (from_user, description, time = None):
-	if description != '':
-		for key, value in descriptions.items():
-			if description_res[key].findall(description):
-				if callable(value):
-					return value(from_user, description, time)
-				else:
-					return value
-				break
-	for key, value in anothers.items():
-		if another_res[key].findall(from_user):
-			if callable(value):
-				return value(from_user, description, time)
-			else:
-				return value
-			break
-	return "Expenses:Unknown"
+def replace_flag(entry, flag):
+    return entry._replace(flag='!')
 
-def get_income_account_by_guess (from_user, description, time = None):
-	for key, value in incomes.items():
-		if income_res[key].findall(description):
-			return value
-			break
-	return "Income:Unknown"
 
-def get_account_by_name (name, time = None):
+def get_account_by_guess(from_user, description, time=None):
+    if description != '':
+        for key, value in descriptions.items():
+            if description_res[key].findall(description):
+                if callable(value):
+                    return value(from_user, description, time)
+                else:
+                    return value
+                break
+    for key, value in anothers.items():
+        if another_res[key].findall(from_user):
+            if callable(value):
+                return value(from_user, description, time)
+            else:
+                return value
+            break
+    return "Expenses:Unknown"
+
+
+def get_income_account_by_guess(from_user, description, time=None):
+    for key, value in incomes.items():
+        if income_res[key].findall(description):
+            return value
+    return "Income:Unknown"
+
+
+def get_account_by_name(name, time=None):
     if accounts.get(name, '') == '':
-	    return "Unknown:" + name
+        return "Unknown:" + name
     else:
         return accounts.get(name)
+
 
 class DictReaderStrip(csv.DictReader):
     @property
@@ -71,6 +75,7 @@ class DictReaderStrip(csv.DictReader):
                 d[key] = self.restval.strip()
         return d
 
+
 class Metas(query_compile.EvalFunction):
     __intypes__ = []
 
@@ -81,5 +86,6 @@ class Metas(query_compile.EvalFunction):
         args = self.eval_args(context)
         meta = context.entry.meta
         return meta
+
 
 TargetsEnvironment.functions['metas'] = Metas

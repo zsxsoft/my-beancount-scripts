@@ -1,17 +1,19 @@
-import requests
-import time
-from datetime import datetime, tzinfo, timedelta
-from string import Template
 import json
+import time
+from datetime import datetime, timedelta, tzinfo
+from string import Template
 
+import requests
 from beancount.core.number import D
 from beancount.prices import source
 from beancount.utils.date_utils import parse_date_liberally
 
 ZERO = timedelta(0)
-BASE_URL_TEMPLATE = Template("http://fund.10jqka.com.cn/$ticker/json/jsondwjz.json")
+BASE_URL_TEMPLATE = Template(
+    "http://fund.10jqka.com.cn/$ticker/json/jsondwjz.json")
 CURRENCY = "USD"
 TIME_DELAY = 1
+
 
 class UTCtzinfo(tzinfo):
     def utcoffset(self, dt):
@@ -23,10 +25,13 @@ class UTCtzinfo(tzinfo):
     def dst(self, dt):
         return ZERO
 
+
 utc = UTCtzinfo()
+
 
 class CoinmarketcapError(ValueError):
     "An error from the Coinmarketcap API."
+
 
 class Source(source.Source):
     def _get_price_for_date(self, ticker, date=None):
@@ -36,7 +41,7 @@ class Source(source.Source):
         else:
             date_string = date.strftime("%Y%m%d")
 
-        url = BASE_URL_TEMPLATE.substitute(ticker = ticker)
+        url = BASE_URL_TEMPLATE.substitute(ticker=ticker)
 
         try:
             content = requests.get(url).content
@@ -60,16 +65,19 @@ class Source(source.Source):
                 date = item[0]
 
             parsed_date = parse_date_liberally(date)
-            date = datetime(parsed_date.year, parsed_date.month, parsed_date.day, tzinfo=utc)
+            date = datetime(parsed_date.year, parsed_date.month,
+                            parsed_date.day, tzinfo=utc)
 
             price = D(price)
 
             return source.SourcePrice(price, date, CURRENCY)
 
         except KeyError:
-            raise CoinmarketcapError("Invalid response from 10jqka: {}".format(repr(content)))
+            raise CoinmarketcapError(
+                "Invalid response from 10jqka: {}".format(repr(content)))
         except AttributeError:
-            raise CoinmarketcapError("Invalid response from 10jqka: {}".format(repr(content)))
+            raise CoinmarketcapError(
+                "Invalid response from 10jqka: {}".format(repr(content)))
 
     def get_latest_price(self, ticker):
         return self._get_price_for_date(ticker, None)
