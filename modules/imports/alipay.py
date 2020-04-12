@@ -67,22 +67,30 @@ class Alipay(Base):
                 data.EMPTY_SET,
                 data.EMPTY_SET, []
             )
-            data.create_simple_posting(entry, account, row['金额（元）'], 'CNY')
-            if row['资金状态'] == '已支出':
+            price = row['金额（元）']
+            money_status = row['资金状态']
+            if money_status == '已支出':
                 data.create_simple_posting(entry, Account支付宝, None, None)
                 amount = -amount
-            elif row['资金状态'] == '资金转移':
+            elif money_status == '资金转移':
                 data.create_simple_posting(entry, Account支付宝, None, None)
-            elif row['资金状态'] == '已收入':
-                income = get_income_account_by_guess(
-                    row['交易对方'], row['商品名称'], time)
-                if income == 'Income:Unknown':
-                    entry = entry._replace(flag='!')
-                data.create_simple_posting(entry, income, None, None)
+            elif money_status == '已收入':
+                if row['交易状态'] == '退款成功':
+                    # 收钱码收款时，退款成功时资金状态为已支出
+                    price = '-' + price
+                    data.create_simple_posting(entry, Account支付宝, None, None)
+                else:
+                    income = get_income_account_by_guess(
+                        row['交易对方'], row['商品名称'], time)
+                    if income == 'Income:Unknown':
+                        entry = entry._replace(flag='!')
+                    data.create_simple_posting(entry, income, None, None)
+                    account = Account支付宝
             else:
                 print('Unknown status')
                 print(row)
 
+            data.create_simple_posting(entry, account, price, 'CNY')
             if (row['服务费（元）'] != '0.00'):
                 data.create_simple_posting(
                     entry, 'Expenses:Fee', row['服务费（元）'], 'CNY')
