@@ -72,7 +72,7 @@ class WeChat(Base):
 
             status = row['当前状态']
 
-            if status == '支付成功' or status == '已全额退款' or '已退款' in status:
+            if status == '支付成功' or status == '朋友已收钱' or status == '已全额退款' or '已退款' in status:
                 if '转入零钱通' in row['交易类型']:
                     entry = entry._replace(payee='')
                     entry = entry._replace(narration='转入零钱通')
