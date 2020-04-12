@@ -1,14 +1,17 @@
-from datetime import date
-from beancount.core import data
-from beancount.core.data import Transaction, Note
-from .deduplicate import Deduplicate
-from .base import Base
-from . import DictReaderStrip, get_account_by_guess, get_income_account_by_guess, replace_flag
-from io import StringIO
-from ..accounts import accounts
-import csv
-import dateparser
 import calendar
+import csv
+from datetime import date
+from io import StringIO
+
+import dateparser
+from beancount.core import data
+from beancount.core.data import Note, Transaction
+
+from ..accounts import accounts
+from . import (DictReaderStrip, get_account_by_guess,
+               get_income_account_by_guess, replace_flag)
+from .base import Base
+from .deduplicate import Deduplicate
 
 Account零钱通 = 'Assets:Company:WeChat:Lingqiantong'
 Account收入红包 = 'Income:RedBag'

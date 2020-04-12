@@ -1,13 +1,13 @@
-import requests
 import time
-from datetime import datetime, tzinfo, timedelta
+from datetime import datetime, timedelta, tzinfo
 from string import Template
 from urllib.parse import unquote
-from bs4 import BeautifulSoup
 
+import requests
 from beancount.core.number import D
 from beancount.prices import source
 from beancount.utils.date_utils import parse_date_liberally
+from bs4 import BeautifulSoup
 
 ZERO = timedelta(0)
 BASE_URL_TEMPLATE = "https://srh.bankofchina.com/search/whpj/search_cn.jsp"

@@ -1,5 +1,7 @@
-from beancount.query import query
 from shutil import copyfile
+
+from beancount.query import query
+
 from ..accounts import public_accounts
 
 

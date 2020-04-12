@@ -1,15 +1,18 @@
-from datetime import date
-from beancount.core import data
-from beancount.core.data import Transaction, Note
-from .deduplicate import Deduplicate
-from .base import Base
-from . import DictReaderStrip, get_account_by_guess, get_income_account_by_guess
-from io import StringIO
-import csv
-import dateparser
 import calendar
+import csv
+from datetime import date
+from io import StringIO
+
+import dateparser
 import eml_parser
+from beancount.core import data
+from beancount.core.data import Note, Transaction
 from bs4 import BeautifulSoup
+
+from . import (DictReaderStrip, get_account_by_guess,
+               get_income_account_by_guess)
+from .base import Base
+from .deduplicate import Deduplicate
 
 Account民生 = 'Liabilities:CreditCard:CMBC'
 

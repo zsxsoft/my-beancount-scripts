@@ -1,14 +1,17 @@
-from datetime import date
-from beancount.core import data
-from beancount.core.data import Transaction, Note
-from .deduplicate import Deduplicate
-from .base import Base
-from . import DictReaderStrip, get_account_by_guess, get_income_account_by_guess
-from io import StringIO
+import calendar
 import csv
 import datetime
-import calendar
+from datetime import date
+from io import StringIO
+
 import xlrd
+from beancount.core import data
+from beancount.core.data import Note, Transaction
+
+from . import (DictReaderStrip, get_account_by_guess,
+               get_income_account_by_guess)
+from .base import Base
+from .deduplicate import Deduplicate
 
 Account余额宝 = 'Assets:Company:Alipay:MonetaryFund'
 incomes = ['余额自动转入', '收益', '单次转入']

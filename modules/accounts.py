@@ -40,7 +40,7 @@ accounts = {
 }
 
 descriptions = {
-    '滴滴打车|滴滴快车': get_didi,
+    #'滴滴打车|滴滴快车': get_didi,
     '余额宝.*收益发放': 'Assets:Company:Alipay:MonetaryFund',
     '转入到余利宝': 'Assets:Bank:MyBank',
     '花呗收钱服务费': 'Expenses:Fee',
