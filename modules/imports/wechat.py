@@ -1,7 +1,9 @@
 import calendar
 import csv
+import re
+from zipfile import ZipFile
 from datetime import date
-from io import StringIO
+from io import BytesIO, StringIO
 
 import dateparser
 from beancount.core import data
@@ -22,6 +24,13 @@ Account余额 = 'Assets:Balances:WeChat'
 class WeChat(Base):
 
     def __init__(self, filename, byte_content, entries, option_map):
+        if re.search(r'微信支付账单.*\.zip$', filename):
+            password = input('微信账单密码：')
+            z = ZipFile(BytesIO(byte_content), 'r')
+            z.setpassword(bytes(password, 'utf-8'))
+            filelist = z.namelist()
+            if len(filelist) == 2 and re.search(r'微信支付.*\.csv$', filelist[1]):
+                byte_content = z.read(filelist[1])
         content = byte_content.decode("utf-8-sig")
         lines = content.split("\n")
         if (lines[0].replace(',', '') != '微信支付账单明细\r'):
@@ -45,7 +54,7 @@ class WeChat(Base):
             meta['trade_time'] = row['交易时间']
             meta['timestamp'] = str(time.timestamp()).replace('.0', '')
             account = get_account_by_guess(row['交易对方'], row['商品'], time)
-            # flag = "*"
+            flag = "*"
             amount_string = row['金额(元)'].replace('¥', '')
             amount = float(amount_string)
 
@@ -72,7 +81,7 @@ class WeChat(Base):
 
             status = row['当前状态']
 
-            if status == '支付成功' or status == '朋友已收钱' or status == '已全额退款' or '已退款' in status:
+            if status == '支付成功' or status == '朋友已收钱' or status == '已全额退款' or '已退款' in status or status == '已转账' or status == '充值成功':
                 if '转入零钱通' in row['交易类型']:
                     entry = entry._replace(payee='')
                     entry = entry._replace(narration='转入零钱通')
@@ -94,7 +103,7 @@ class WeChat(Base):
                         entry, account, amount_string, 'CNY')
                 data.create_simple_posting(
                     entry, accounts[row['支付方式']], None, None)
-            elif row['当前状态'] == '已存入零钱':
+            elif row['当前状态'] == '已存入零钱' or row['当前状态'] == '已收钱':
                 if '微信红包' in row['交易类型']:
                     if entry.narration == '/':
                         entry = entry._replace(narration=row['交易类型'])

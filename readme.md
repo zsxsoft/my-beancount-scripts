@@ -4,8 +4,8 @@ my-beancount-scripts
 Beancount 我的个人自用脚本，包含以下功能：
 
 1. 账单导入
-   - 支付宝（CSV）
-   - 微信（CSV）
+   - 支付宝（ZIP / CSV）
+   - 微信（ZIP / CSV）
    - 余额宝（XLS）（不用于导入，仅用于支付宝账单去重）
    - ~~中信银行信用卡（EML邮件）~~
    - 民生银行信用卡（EML邮件）
@@ -33,6 +33,7 @@ Beancount 我的个人自用脚本，包含以下功能：
 ```bash
 python import.py ~/民生信用卡2019年09月电子对账单.eml
 python import.py ./alipay_record_20191007_1634_1.csv
+python import.py ./alipay_record_20191007_1634.zip
 python import.py 微信支付账单\(20190802-20190902\).csv --out out.bean
 ```
 其会自动识别文件类型，自动进行编码转换，不需人工判断。
@@ -54,11 +55,11 @@ python import.py 微信支付账单\(20190802-20190902\).csv --out out.bean
 ### 获得账单
 
 #### 支付宝
-支付宝电脑端，「[查看所有交易记录](https://consumeprod.alipay.com/record/standard.htm)」，在其下方找到「下载查询结果」，扫码后可得到zip文件，解压后可得csv。
+支付宝电脑端，「[查看所有交易记录](https://consumeprod.alipay.com/record/standard.htm)」，在其下方找到「下载查询结果」，扫码后可得到zip文件，可直接导入。
 
 #### 微信
 
-手机进入微信支付->钱包->（右上角）账单->右上角...->账单下载，之后可在邮箱中得到zip文件，解压后可得csv。
+手机进入微信支付->钱包->（右上角）账单->右上角...->账单下载，之后可在邮箱中得到zip文件。通过import.py导入时，脚本会提示输入密码。
 
 #### 信用卡账单
 

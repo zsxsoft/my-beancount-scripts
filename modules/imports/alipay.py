@@ -1,7 +1,9 @@
 import calendar
 import csv
+import re
+from zipfile import ZipFile
 from datetime import date
-from io import StringIO
+from io import StringIO, BytesIO
 
 import dateparser
 from beancount.core import data
@@ -18,6 +20,11 @@ Account支付宝 = 'Assets:Company:Alipay:StupidAlipay'
 class Alipay(Base):
 
     def __init__(self, filename, byte_content, entries, option_map):
+        if re.search(r'alipay_record_.*\.zip$', filename):
+            z = ZipFile(BytesIO(byte_content), 'r')
+            filelist = z.namelist()
+            if len(filelist) == 1 and re.search(r'alipay_record.*\.csv$', filelist[0]):
+                byte_content = z.read(filelist[0])
         content = byte_content.decode('gbk')
         lines = content.split("\n")
         if (lines[0] != '支付宝交易记录明细查询\r'):
@@ -99,7 +106,7 @@ class Alipay(Base):
             data.create_simple_posting(entry, account, price, 'CNY')
             if (row['服务费（元）'] != '0.00'):
                 data.create_simple_posting(
-                    entry, 'Expenses:Fee', row['服务费（元）'], 'CNY')
+                    entry, 'Expenses:Finance:Fee', row['服务费（元）'], 'CNY')
 
             #b = printer.format_entry(entry)
             # print(b)
