@@ -7,9 +7,11 @@ from beancount.core import data
 from beancount.parser import parser, printer
 
 from modules.imports.alipay import Alipay
+#from modules.imports.ccb_debit import CCBDebit
 from modules.imports.citic_credit import CITICCredit
 from modules.imports.cmb_credit import CMBCredit
 from modules.imports.cmbc_credit import CMBCCredit
+from modules.imports.icbc_credit import ICBCCredit
 from modules.imports.icbc_debit import ICBCDebit
 from modules.imports.wechat import WeChat
 from modules.imports.yuebao import YuEBao
@@ -23,8 +25,8 @@ args = parser.parse_args()
 
 entries, errors, option_map = loader.load_file(args.entry)
 
-importers = [Alipay, WeChat, CITICCredit,
-             CMBCCredit, CMBCredit, YuEBao, ICBCDebit]
+importers = [Alipay, WeChat, CITICCredit, CMBCCredit,
+             CMBCredit, YuEBao, ICBCCredit, ICBCDebit]#, CCBDebit]
 instance = None
 for importer in importers:
     try:
@@ -33,6 +35,7 @@ for importer in importers:
             instance = importer(args.path, file_bytes, entries, option_map)
         break
     except Exception as e:
+        print(e)
         pass
 
 if instance == None:
@@ -47,11 +50,11 @@ with open(args.out, 'w') as f:
 
 print('Outputed to ' + args.out)
 exit(0)
-"""
+
 file = parser.parse_one('''
-2018/01/15 * "测试" "测试"
-  Assets:Test 300 CNY
-  Income:Test
+2018-01-15 * "测试" "测试"
+	Assets:Test 300 CNY
+	Income:Test
 
 ''')
 print(file.postings)
@@ -63,4 +66,3 @@ print(file.postings[0])
 
 data = printer.format_entry(file)
 print(data)
-"""
