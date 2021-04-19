@@ -56,7 +56,7 @@ class YuEBao(Base):
             if not row[2] in incomes:
                 amount = -amount
 
-            if self.deduplicate.find_duplicate(entry, amount, None, Account余额宝):
+            if not self.deduplicate.find_duplicate(entry, amount, None, Account余额宝):
                 print(
                     "Unknown transaction for {}, check if Alipay transaction exists.".format(time))
 
