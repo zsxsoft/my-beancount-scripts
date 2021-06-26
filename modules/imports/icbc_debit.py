@@ -19,7 +19,7 @@ AccountUnknown = 'Assets:Unknown'
 class ICBCDebit():
 
     def __init__(self, filename, byte_content, entries, option_map):
-        if not filename.endswith('html') and not filename.endwith('htm'):
+        if not filename.endswith('html') and not filename.endswith('htm'):
             raise 'Not ICBC!'
         content = str(byte_content.decode('gbk'))
         self.soup = BeautifulSoup(content, 'html.parser')

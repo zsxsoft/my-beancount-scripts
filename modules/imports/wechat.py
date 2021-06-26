@@ -97,7 +97,7 @@ class WeChat(Base):
                             row['交易对方'], row['商品'], time)
                     # if account == "Unknown":
                     #	entry = replace_flag(entry, '!')
-                    if status == '已全额退款':
+                    if status == '已全额退款' or '已退款' in status:
                         amount_string = '-' + amount_string
                     data.create_simple_posting(
                         entry, account, amount_string, 'CNY')
