@@ -56,10 +56,7 @@ class Source(source.Source):
             price = D(quote['close'])
             return source.SourcePrice(price, date, CURRENCY)
 
-        except KeyError:
-            raise CoinmarketcapError(
-                "Invalid response from Coinmarketcap: {}".format(repr(content)))
-        except AttributeError:
+        except:
             raise CoinmarketcapError(
                 "Invalid response from Coinmarketcap: {}".format(repr(content)))
 
