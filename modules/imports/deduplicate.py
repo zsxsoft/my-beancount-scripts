@@ -32,7 +32,7 @@ class Deduplicate:
                     # unique_no存在但不同，那就绝对不是同一笔交易了
                     # 这个时候就直接返回不存在同订单
                     else:
-                        return False
+                        continue
             if same_trade:
                 return True
             # 否则，可能是不同账单的同交易，此时判断时间
