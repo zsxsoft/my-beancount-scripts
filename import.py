@@ -46,7 +46,7 @@ if instance == None:
 new_entries = instance.parse()
 
 
-with open(args.out, 'w') as f:
+with open(args.out, 'w', encoding='utf-8') as f:
     printer.print_entries(new_entries, file=f)
 
 print('Outputed to ' + args.out)
