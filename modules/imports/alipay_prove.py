@@ -1,5 +1,6 @@
 import calendar
 import csv
+import os
 import re
 from zipfile import ZipFile
 from datetime import date
@@ -24,11 +25,27 @@ class AlipayProve(Base):
     def __init__(self, filename, byte_content, entries, option_map):
         if re.search(r'alipay_record_\d{8}_\d{6}.zip$', filename):
             password = input('支付宝账单密码：')
-            z = ZipFile(BytesIO(byte_content), 'r')
-            z.setpassword(bytes(password, 'utf-8'))
-            filelist = z.namelist()
-            if len(filelist) == 2 and re.search(r'alipay_record.*\.csv$', filelist[1]):
-                byte_content = z.read(filelist[1])
+            try:
+                zipSysDir = "D:\\Program Files\\7-Zip\\7z.exe" #将变量zipSysDir设置为7-zip软件安装的系统目录，需要安装7zip才可以解压采用AES256方式加密压缩的zip包
+                # 设置解压到zip文件所在的文件夹
+                outpath = os.path.abspath(os.path.join(os.path.dirname(filename))) #os.path.abspath(os.path.join(os.path.dirname(filename),os.path.pardir)) # 导出到上级目录
+                #拼接解压缩命令字符串
+                sysstr = "\""+zipSysDir+"\""+" x "+"\""+filename+"\""+" -o"+"\""+outpath+"\""+" -y -p"+password
+                # print(sysstr)
+                os.popen(sysstr) # 执行cmd命令解压
+                filename_csv = filename[:-4] +'.csv' # 替换后缀.zip为.csv获取解压后得到的csv文件名称
+                with open(filename_csv,mode='rb') as f:
+                    byte_content = f.read() #读取csv文件的内容
+                os.remove(filename_csv) # 删除解压获得的csv文件
+            except Exception as e:
+                print(e)
+                exit(1)
+                # # 原始代码   ZipFile对象只能解压CRC32模式加密的压缩包
+                # z = ZipFile(BytesIO(byte_content), 'r')
+                # z.setpassword(bytes(password, 'utf-8'))
+                # filelist = z.namelist()
+                # if len(filelist) == 2 and re.search(r'alipay_record.*\.csv$', filelist[1]):
+                #     byte_content = z.read(filelist[1])
         content = byte_content.decode("gbk")
         lines = content.split("\n")
         if not re.search(r'支付宝（中国）网络技术有限公司', lines[0]):
