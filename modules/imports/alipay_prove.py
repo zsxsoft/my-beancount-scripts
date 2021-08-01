@@ -1,7 +1,7 @@
 import calendar
 import csv
 import re
-from zipfile import ZipFile
+from pyzipper import AESZipFile
 from datetime import date
 from io import BytesIO, StringIO
 
@@ -24,11 +24,11 @@ class AlipayProve(Base):
     def __init__(self, filename, byte_content, entries, option_map):
         if re.search(r'alipay_record_\d{8}_\d{6}.zip$', filename):
             password = input('支付宝账单密码：')
-            z = ZipFile(BytesIO(byte_content), 'r')
-            z.setpassword(bytes(password, 'utf-8'))
+            z = AESZipFile(BytesIO(byte_content), 'r')
+            z.setpassword(bytes(password.strip(), 'utf-8'))
             filelist = z.namelist()
-            if len(filelist) == 2 and re.search(r'alipay_record.*\.csv$', filelist[1]):
-                byte_content = z.read(filelist[1])
+            if len(filelist) == 1 and re.search(r'alipay_record.*\.csv$', filelist[0]):
+                byte_content = z.read(filelist[0])
         content = byte_content.decode("gbk")
         lines = content.split("\n")
         if not re.search(r'支付宝（中国）网络技术有限公司', lines[0]):
@@ -95,7 +95,8 @@ class AlipayProve(Base):
                       ('蚂蚁财富' in row['交易对方']    and status == '交易成功') or
                       ('红包' == trade_account_original and status == '交易成功') or
                       ('基金组合' in row['商品说明']    and status == '交易成功') or
-                      ('理财赎回' in row['商品说明']    and status == '交易成功')
+                      ('理财赎回' in row['商品说明']    and status == '交易成功') or
+                      ('退款资金提取' == row['商品说明']    and status == '提取成功')
                 ):
                     data.create_simple_posting(
                         entry, trade_account, amount_string, 'CNY')
