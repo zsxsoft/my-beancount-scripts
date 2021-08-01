@@ -32,7 +32,7 @@ class CMBCredit():
             byte_content, include_raw_body=True)
         if not '招商银行信用卡' in parsed_eml['header']['subject']:
             raise 'Not CMB!'
-        content = parsed_eml['body'][1]['content']
+        content = parsed_eml['body'][0]['content']
         # for body in parsed_eml['body']:
         #content += body['content']
         self.soup = BeautifulSoup(content, 'html.parser')
@@ -62,14 +62,15 @@ class CMBCredit():
         d = self.soup
         transactions = []
         # balance = d.select('#fixBand16')[0].text.replace('RMB', '').strip()
-        date_range = d.select('#fixBand38 div font')[0].text.strip()
+        # date_range = d.select('#fixBand38 div font')[0].text.strip()
+        date_range = d.select('#fixBand6 div font')[0].text.strip()
         transaction_date = dateparser.parse(
             date_range.split('-')[1].split('(')[0])
         transaction_date = date(transaction_date.year,
                                 transaction_date.month, transaction_date.day)
         self.date = transaction_date
         balance = '-' + \
-            d.select('#fixBand40 div font')[0].text.replace(
+            d.select('#fixBand18 div font')[0].text.replace(
                 '￥', '').replace(',', '').strip()
         entry = Balance(
             account=Account招商,
@@ -81,7 +82,7 @@ class CMBCredit():
         )
         transactions.append(entry)
 
-        bands = d.select('#fixBand29 #loopBand2>table>tbody>tr')
+        bands = d.select('#fixBand29 #loopBand2>table>tr')
         for band in bands:
             tds = band.select('td #fixBand15 table table td')
             if len(tds) == 0:
