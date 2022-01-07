@@ -127,8 +127,11 @@ class AlipayProve(Base):
                         entry, account, amount_string, 'CNY')
                     data.create_simple_posting(
                         entry, trade_account, None, None)
-                elif status == '交易关闭' and trade_account_original == '':
+                elif (status == '交易关闭' or status == '已关闭') and trade_account_original == '':
                     #ignore it?
+                    pass
+                elif status == '解冻成功' or status == '信用服务使用成功':
+                    # maybe should add to Liabilities?
                     pass
                 else:
                     print(row)
@@ -143,6 +146,8 @@ class AlipayProve(Base):
                         ), '-' + amount_string, 'CNY')
                     data.create_simple_posting(
                         entry, trade_account, None, None)
+                elif status == '交易关闭':
+                    pass
                 else:
                     print(row)
                     exit(0)
