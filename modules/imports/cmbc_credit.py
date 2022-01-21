@@ -21,13 +21,13 @@ class CMBCCredit():
 
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('eml'):
-            raise 'Not CMBC!'
+            raise RuntimeError('Not CMBC!')
         parsed_eml = eml_parser.eml_parser.decode_email_b(
             byte_content, include_raw_body=True)
         title = parsed_eml['header']['subject']
         content = ''
         if not '民生信用卡' in title:
-            raise 'Not CMBC!'
+            raise RuntimeError('Not CMBC!')
         for body in parsed_eml['body']:
             content += body['content']
         self.soup = BeautifulSoup(content, 'html.parser')

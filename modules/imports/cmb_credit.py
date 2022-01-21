@@ -27,11 +27,11 @@ class CMBCredit():
 
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('eml'):
-            raise 'Not CMB!'
+            raise RuntimeError('Not CMB!')
         parsed_eml = eml_parser.eml_parser.decode_email_b(
             byte_content, include_raw_body=True)
         if not '招商银行信用卡' in parsed_eml['header']['subject']:
-            raise 'Not CMB!'
+            raise RuntimeError('Not CMB!')
         content = parsed_eml['body'][0]['content']
         # for body in parsed_eml['body']:
         #content += body['content']

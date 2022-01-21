@@ -34,7 +34,7 @@ class WeChat(Base):
         content = byte_content.decode("utf-8-sig")
         lines = content.split("\n")
         if (lines[0].replace(',', '') != '微信支付账单明细\r'):
-            raise 'Not WeChat Trade Record!'
+            raise RuntimeError('Not WeChat Trade Record!')
 
         print('Import WeChat: ' + lines[2])
         content = "\n".join(lines[16:len(lines)])
