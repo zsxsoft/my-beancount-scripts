@@ -21,11 +21,11 @@ class CITICCredit():
 
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('eml'):
-            raise 'Not CITIC!'
+            raise RuntimeError('Not CITIC!')
         parsed_eml = eml_parser.eml_parser.decode_email_b(
             byte_content, include_raw_body=True)
         if not '中信银行' in parsed_eml['header']['subject']:
-            raise 'Not CITIC!'
+            raise RuntimeError('Not CITIC!')
         content = parsed_eml['body'][1]['content']
         # for body in parsed_eml['body']:
         #content += body['content']

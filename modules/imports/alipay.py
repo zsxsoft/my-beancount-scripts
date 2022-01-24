@@ -28,7 +28,7 @@ class Alipay(Base):
         content = byte_content.decode('gbk')
         lines = content.split("\n")
         if (lines[0] != '支付宝交易记录明细查询\r'):
-            raise 'Not Alipay Trade Record!'
+            raise RuntimeError('Not Alipay Trade Record!')
         print('Import Alipay: ' + lines[2])
         content = "\n".join(lines[4:len(lines) - 8])
         self.content = content

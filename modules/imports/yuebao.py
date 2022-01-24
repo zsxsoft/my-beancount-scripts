@@ -21,12 +21,12 @@ class YuEBao(Base):
 
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('xls'):
-            raise 'Not YuEBao!'
+            raise RuntimeError('Not YuEBao!')
         data = xlrd.open_workbook(filename)
         table = data.sheets()[0]
         rows_value = table.row_values(0)
         if rows_value[0] != '余额宝收支明细查询':
-            raise 'Not YuEBao!'
+            raise RuntimeError('Not YuEBao!')
         self.book = data
         self.table = table
         self.deduplicate = Deduplicate(entries, option_map)

@@ -20,12 +20,12 @@ class ICBCDebit():
 
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('html') and not filename.endswith('htm'):
-            raise 'Not ICBC!'
+            raise RuntimeError('Not ICBC!')
         content = str(byte_content.decode('gbk'))
         self.soup = BeautifulSoup(content, 'html.parser')
         title = self.soup.select('.title')[0].text
         if '中国工商银行' not in title:
-            raise 'Not ICBC!'
+            raise RuntimeError('Not ICBC!')
         self.content = content
         self.deduplicate = Deduplicate(entries, option_map)
 
