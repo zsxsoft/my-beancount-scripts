@@ -35,7 +35,11 @@ class AlipayProve(Base):
             raise ValueError('Not Alipay Proven Record!')
 
         print('Import Alipay')
-        content = "\n".join(lines[1:len(lines) - 30])
+        transaction_lines = []
+        for line in lines:
+            if line.count(',') >= 5:
+                transaction_lines.append(line)
+        content = "\n".join(transaction_lines)
         self.content = content
         self.deduplicate = Deduplicate(entries, option_map)
 
@@ -82,7 +86,7 @@ class AlipayProve(Base):
             trade_account = accounts[trade_account_original] if trade_account_original in accounts else AccountAssetUnknown
 
             if trade_type == '支出':
-                if status in ['交易成功', '支付成功', '代付成功', '亲情卡付款成功', '等待确认收货', '等待对方发货', '交易关闭'] :
+                if status in ['交易成功', '支付成功', '代付成功', '亲情卡付款成功', '等待确认收货', '等待对方发货', '交易关闭', '充值成功']:
                     data.create_simple_posting(
                         entry, trade_account, '-' + amount_string, 'CNY')
                     data.create_simple_posting(
@@ -91,7 +95,13 @@ class AlipayProve(Base):
                     print(status)
                     exit(0)
             elif trade_type == '其他':
-                if (  status == '退款成功' or
+                if ('蚂蚁财富' in row['交易对方'] and '买入' in row['商品说明'] and status == '交易成功'):
+                    # let fund.py happy
+                    data.create_simple_posting(
+                        entry, account, None, None)
+                    data.create_simple_posting(
+                        entry, trade_account, '-' + amount_string, 'CNY')
+                elif (  status == '退款成功' or
                       ('蚂蚁财富' in row['交易对方']    and status == '交易成功') or
                       ('红包' == trade_account_original and status == '交易成功') or
                       ('基金组合' in row['商品说明']    and status == '交易成功') or
