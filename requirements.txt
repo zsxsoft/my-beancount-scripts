@@ -42,3 +42,4 @@ tzlocal==2.1
 uritemplate==3.0.1
 urllib3==1.26.6
 xlrd==2.0.1
+'camelot-py[base]'
