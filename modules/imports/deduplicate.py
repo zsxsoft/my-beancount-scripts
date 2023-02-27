@@ -32,7 +32,7 @@ class Deduplicate:
                     # unique_no存在但不同，那就绝对不是同一笔交易了
                     # 这个时候就直接返回不存在同订单
                     else:
-                        continue
+                        return False
             if same_trade:
                 return True
             # 否则，可能是不同账单的同交易，此时判断时间
@@ -81,11 +81,17 @@ class Deduplicate:
             old_account, new_account, location))
 
     def append_text_to_transaction(self, filename, lineno, text):
+        if filename[0] == '<':
+            return
         lines = self.read_bean(filename)
         lines[lineno - 1] += '\n	' + text
         print("Appended meta {} to {}:{}".format(text, filename, lineno))
 
     def update_transaction_flag(self, location, old_flag, new_flag):
+        if len(location) <= 0:
+            return
+        if location[0] == '<':
+            return
         file_items = location.split(':')
         lineno = int(file_items[1])
         lines = self.read_bean(file_items[0])
@@ -94,6 +100,8 @@ class Deduplicate:
 
     def apply_beans(self):
         for filename in self.beans:
+            if filename[0] == '<':
+                continue
             copyfile(filename, filename + '.bak')
             with open(filename, 'w') as f:
                 f.write('\n'.join(self.beans[filename]))
