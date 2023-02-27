@@ -22,7 +22,7 @@ Account余额 = accounts['支付宝余额'] if '支付宝余额' in accounts els
 class AlipayProve(Base):
 
     def __init__(self, filename, byte_content, entries, option_map):
-        if re.search(r'alipay_record_\d{8}_\d{6}.zip$', filename):
+        if re.search(r'alipay_record_\d{8}_\d{6}_.*.zip$', filename):
             password = input('支付宝账单密码：')
             z = AESZipFile(BytesIO(byte_content), 'r')
             z.setpassword(bytes(password.strip(), 'utf-8'))
@@ -31,7 +31,7 @@ class AlipayProve(Base):
                 byte_content = z.read(filelist[0])
         content = byte_content.decode("gbk")
         lines = content.split("\n")
-        if not re.search(r'支付宝（中国）网络技术有限公司', lines[0]):
+        if not re.search(r'导出信息：', lines[1]):
             raise ValueError('Not Alipay Proven Record!')
 
         print('Import Alipay')
@@ -85,16 +85,17 @@ class AlipayProve(Base):
                 trade_account_original = '支付宝余额'
             trade_account = accounts[trade_account_original] if trade_account_original in accounts else AccountAssetUnknown
 
-            if trade_type == '支出':
-                if status in ['交易成功', '支付成功', '代付成功', '亲情卡付款成功', '等待确认收货', '等待对方发货', '交易关闭', '充值成功']:
+            if trade_type == '支出' or trade_type == '':
+                if status in ['交易成功', '支付成功', '代付成功', '亲情卡付款成功', '等待确认收货', '等待对方发货', '充值成功']:
                     data.create_simple_posting(
                         entry, trade_account, '-' + amount_string, 'CNY')
                     data.create_simple_posting(
                         entry, account, None, None)
                 else:
+                    print(row)
                     print(status)
                     exit(0)
-            elif trade_type == '其他':
+            elif trade_type == '不计收支':
                 if ('蚂蚁财富' in row['交易对方'] and '买入' in row['商品说明'] and status == '交易成功'):
                     # let fund.py happy
                     data.create_simple_posting(
@@ -137,26 +138,24 @@ class AlipayProve(Base):
                         entry, account, amount_string, 'CNY')
                     data.create_simple_posting(
                         entry, trade_account, None, None)
-                elif (status == '交易关闭' or status == '已关闭') and trade_account_original == '':
+                elif status == '交易关闭' and trade_account_original == '':
                     #ignore it?
                     pass
-                elif status == '解冻成功' or status == '信用服务使用成功':
                     # maybe should add to Liabilities?
-                    pass
                 else:
                     print(row)
-                    exit(0)
+                    #exit(0)
             elif trade_type == '收入':
                 if trade_account_original == '':
                     trade_account = Account余额
-                if status == '交易成功':
+                if status in ['交易成功', '收款成功'] :
                     data.create_simple_posting(
                         entry, get_income_account_by_guess(
                             row['交易对方'], row['商品说明'], time
                         ), '-' + amount_string, 'CNY')
                     data.create_simple_posting(
                         entry, trade_account, None, None)
-                elif status == '交易关闭':
+                elif status in ['等待对方确认收货', '交易关闭']:
                     pass
                 else:
                     print(row)
