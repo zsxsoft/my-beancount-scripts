@@ -1,14 +1,16 @@
-import requests
 import json
+import time
 from datetime import datetime, timedelta, tzinfo
 from string import Template
 
+from curl_cffi import requests
 from beancount.core.number import D
 from beanprice import source
 
 ZERO = timedelta(0)
-BASE_URL_TEMPLATE = Template(
-    "https://api.coinmarketcap.com/data-api/v3.1/cryptocurrency/historical?id=$id&convertId=$convertId&timeEnd=$date_end&timeStart=$date_start&interval=1d")
+BASE_URL_TEMPLATE = Template("https://api.investing.com/api/financialdata/historical/$ticker")
+CURRENCY = "CNY"
+TIME_DELAY = 1
 
 
 class UTCtzinfo(tzinfo):
@@ -21,41 +23,44 @@ class UTCtzinfo(tzinfo):
 
 
 utc = UTCtzinfo()
+session = requests.Session(impersonate="chrome")
 
 
-class CoinmarketcapError(ValueError):
-    "An error from the Coinmarketcap API."
+class InvestingError(ValueError):
+    "An error from the Investing API."
 
 
 class Source(source.Source):
     def _fetch_range(self, ticker, start_date, end_date):
         """获取日期范围内的价格数据，返回 {date: price} 映射"""
-        params = ticker.split("--")
+        url = BASE_URL_TEMPLATE.substitute(ticker=ticker)
+        params = {
+            'start-date': start_date.strftime("%Y-%m-%d"),
+            'end-date': end_date.strftime("%Y-%m-%d"),
+            'time-frame': 'Daily',
+            'add-missing-rows': 'false'
+        }
+        headers = {
+            'domain-id': 'cn',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:138.0) Gecko/20100101 Firefox/138.0'
+        }
         
-        url = BASE_URL_TEMPLATE.substitute(
-            date_start=int(start_date.timestamp()),
-            date_end=int(end_date.timestamp()),
-            id=params[0],
-            convertId=params[1])
+        response = session.get(url, params=params, headers=headers)
+        response.raise_for_status()
+        data = response.json()
         
-        content = requests.get(url).content
-        ret = json.loads(content)
-        quotes = ret['data']['quotes']
+        if 'data' not in data or not data['data']:
+            return {}
         
         date_price_map = {}
-        for quote_data in quotes:
-            quote = quote_data['quote']
-            ts = quote['timestamp']
-            if isinstance(ts, str):
-                quote_date = datetime.fromisoformat(ts.replace('Z', '+00:00')).date()
-            else:
-                ts = float(ts)
-                quote_date = datetime.fromtimestamp(ts / 1000).date() if ts > 1e10 else datetime.fromtimestamp(ts).date()
-            date_price_map[quote_date] = D(str(quote['close']))
+        for item in data['data']:
+            item_date = datetime.fromisoformat(item['rowDateTimestamp'].replace('Z', '+00:00')).date()
+            date_price_map[item_date] = D(item['last_closeRaw'])
         
+        time.sleep(TIME_DELAY)
         return date_price_map
 
-    def _find_closest(self, date_price_map, target_date, max_diff=3):
+    def _find_closest(self, date_price_map, target_date, max_diff=7):
         """找到最接近目标日期的价格"""
         if target_date in date_price_map:
             return target_date, date_price_map[target_date]
@@ -74,10 +79,10 @@ class Source(source.Source):
 
     def get_batch_prices(self, tickers, dates):
         """
-        批量获取多个加密货币在多个日期的价格
+        批量获取多个股票在多个日期的价格
         
         Args:
-            tickers: [(commodity, ticker), ...] 如 [('BTC', '1--2787'), ...]
+            tickers: [(commodity, ticker), ...] 如 [('HK0700', '102047'), ...]
             dates: [datetime, ...] 日期列表
         
         Returns:
@@ -88,8 +93,8 @@ class Source(source.Source):
         if not dates:
             return results
         
-        min_date = min(dates)
-        max_date = max(dates) + timedelta(days=1)
+        min_date = min(dates) - timedelta(days=7)
+        max_date = max(dates) + timedelta(days=7)
         
         for commodity, ticker in tickers:
             try:
@@ -99,10 +104,10 @@ class Source(source.Source):
                     target_date = date.date() if isinstance(date, datetime) else date
                     found_date, price = self._find_closest(date_price_map, target_date)
                     if price is not None:
-                        results.append((commodity, found_date, price, 'CNY'))
-                            
+                        results.append((commodity, found_date, price, CURRENCY))
+                
             except Exception as e:
-                print(f"coinmarketcap error for {commodity}: {e}")
+                print(f"investing error for {commodity}: {e}")
         
         return results
 
@@ -116,5 +121,4 @@ class Source(source.Source):
 
     def get_latest_price(self, ticker):
         """获取最新价格"""
-        yesterday = datetime.today().replace(hour=0, minute=0, second=0) - timedelta(days=1)
-        return self.get_historical_price(ticker, yesterday)
+        return self.get_historical_price(ticker, datetime.now())
