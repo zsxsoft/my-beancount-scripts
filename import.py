@@ -17,12 +17,14 @@ from modules.imports.icbc_debit import ICBCDebit
 from modules.imports.wechat import WeChat
 from modules.imports.yuebao import YuEBao
 from modules.imports.alipay_prove import AlipayProve
+from modules.imports import clear_unmatched, write_unmatched_report
 
 parser = argparse.ArgumentParser("import")
 parser.add_argument("path", help="CSV Path")
 parser.add_argument(
     "--entry", help="Entry bean path (default = main.bean)", default='main.bean')
 parser.add_argument("--out", help="Output bean path", default='out.bean')
+parser.add_argument("--unmatched", help="Unmatched transactions output path", default='out-unmatched.bean')
 args = parser.parse_args()
 
 entries, errors, option_map = loader.load_file(args.entry)
@@ -39,7 +41,6 @@ for importer in importers:
         break
     except Exception as e:
         print(e)
-        pass
 
 if instance == None:
     print("No suitable importer!")
@@ -48,10 +49,11 @@ if instance == None:
 new_entries = instance.parse()
 
 
-with open(args.out, 'w', encoding='utf-8') as f:
+with open(args.out, 'w') as f:
     printer.print_entries(new_entries, file=f)
 
 print('Outputed to ' + args.out)
+write_unmatched_report(args.unmatched)
 exit(0)
 
 file = parser.parse_one('''

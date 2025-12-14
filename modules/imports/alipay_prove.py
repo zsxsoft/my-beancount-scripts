@@ -22,12 +22,12 @@ Account余额 = accounts['支付宝余额'] if '支付宝余额' in accounts els
 class AlipayProve(Base):
 
     def __init__(self, filename, byte_content, entries, option_map):
-        if re.search(r'alipay_record_\d{8}_\d{6}_.*.zip$', filename):
+        if re.search(r'支付宝交易明细.*\.zip$', filename):
             password = input('支付宝账单密码：')
             z = AESZipFile(BytesIO(byte_content), 'r')
             z.setpassword(bytes(password.strip(), 'utf-8'))
             filelist = z.namelist()
-            if len(filelist) == 1 and re.search(r'alipay_record.*\.csv$', filelist[0]):
+            if len(filelist) == 1 and re.search(r'支付宝交易明细.*\.csv$', filelist[0]):
                 byte_content = z.read(filelist[0])
         content = byte_content.decode("gbk")
         lines = content.split("\n")
@@ -41,7 +41,7 @@ class AlipayProve(Base):
                 transaction_lines.append(line)
         content = "\n".join(transaction_lines)
         self.content = content
-        self.deduplicate = Deduplicate(entries, option_map)
+        self.deduplicate = Deduplicate(entries, option_map, self.__class__.__name__)
 
     def parse(self):
         content = self.content
@@ -68,13 +68,19 @@ class AlipayProve(Base):
                 12345,
                 meta
             )
+
+            tags = []
+            if row['商品说明'] == '亲情卡':
+                tags.append("love-pay")
+            if len(tags) == 0:
+                tags = data.EMPTY_SET
             entry = Transaction(
                 meta,
                 date(time.year, time.month, time.day),
                 '*',
                 row['交易对方'],
                 row['商品说明'],
-                data.EMPTY_SET,
+                tags,
                 data.EMPTY_SET, []
             )
 
@@ -83,7 +89,9 @@ class AlipayProve(Base):
             trade_account_original = row['收/付款方式']
             if trade_account_original == '余额':
                 trade_account_original = '支付宝余额'
+            trade_account_original = trade_account_original.split('&')[0]
             trade_account = accounts[trade_account_original] if trade_account_original in accounts else AccountAssetUnknown
+
 
             if trade_type == '支出' or trade_type == '':
                 if status in ['交易成功', '支付成功', '代付成功', '亲情卡付款成功', '等待确认收货', '等待对方发货', '充值成功']:
@@ -91,6 +99,8 @@ class AlipayProve(Base):
                         entry, trade_account, '-' + amount_string, 'CNY')
                     data.create_simple_posting(
                         entry, account, None, None)
+                elif status == '交易关闭':
+                    pass
                 else:
                     print(row)
                     print(status)
@@ -135,20 +145,19 @@ class AlipayProve(Base):
                       status == '还款成功'
                     ):
                     data.create_simple_posting(
-                        entry, account, amount_string, 'CNY')
+                        entry, account, None, None)
                     data.create_simple_posting(
-                        entry, trade_account, None, None)
+                        entry, trade_account, '-' + amount_string, 'CNY')
                 elif status == '交易关闭' and trade_account_original == '':
                     #ignore it?
                     pass
-                    # maybe should add to Liabilities?
                 else:
                     print(row)
                     #exit(0)
             elif trade_type == '收入':
                 if trade_account_original == '':
                     trade_account = Account余额
-                if status in ['交易成功', '收款成功'] :
+                if status in ['交易成功', '收款成功', '退款成功'] :
                     data.create_simple_posting(
                         entry, get_income_account_by_guess(
                             row['交易对方'], row['商品说明'], time
@@ -164,7 +173,7 @@ class AlipayProve(Base):
                 print(row)
                 exit(0)
 
-            if not self.deduplicate.find_duplicate(entry, amount, 'alipay_trade_no'):
+            if not self.deduplicate.find_duplicate(entry, amount, 'alipay_trade_no', trade_account):
                 transactions.append(entry)
 
         self.deduplicate.apply_beans()

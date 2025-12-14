@@ -1,8 +1,33 @@
-from beancount.query import query, query_compile
-from beancount.query.query_env import TargetsEnvironment
+from collections import namedtuple
+from beanquery import query, query_compile
+from beanquery.query_env import function
 from ..accounts import *
+from ..ai_guess import ai_guess
+from .deduplicate import (
+    clear_unmatched,
+    write_unmatched_report,
+    get_unmatched_imported,
+    get_unmatched_beancount
+)
 import csv
 
+def get_object_bql_result(ret):
+    rtypes, rvalues = ret
+    ret = []
+    keys = []
+    for k in rtypes:
+        keys.append(k[0])
+    for v in rvalues:
+        d = {}
+        i = 0
+        for vv in v:
+            if isinstance(vv, int) or isinstance(vv, float) or vv == None:
+                vv = str(vv)
+            d[keys[i]] = vv
+            i += 1
+        t = namedtuple('Struct', keys)(**d)
+        ret.append(t)
+    return ret
 
 def replace_flag(entry, flag):
     return entry._replace(flag='!')
@@ -24,7 +49,13 @@ def get_account_by_guess(from_user, description, time=None):
             else:
                 return value
             break
-    return "Expenses:Unknown"
+    #return "Expenses:Unknown"
+    try:
+        if from_user == "":
+            return ai_guess(description)
+        return ai_guess(description) #ai_guess("于" + from_user + "购买的" + description)
+    except Exception as e:
+        return "Expenses:Unknown"
 
 
 def get_income_account_by_guess(from_user, description, time=None):
@@ -75,17 +106,6 @@ class DictReaderStrip(csv.DictReader):
                 d[key] = self.restval.strip()
         return d
 
-
-class Metas(query_compile.EvalFunction):
-    __intypes__ = []
-
-    def __init__(self, operands):
-        super().__init__(operands, object)
-
-    def __call__(self, context):
-        args = self.eval_args(context)
-        meta = context.entry.meta
-        return meta
-
-
-TargetsEnvironment.functions['metas'] = Metas
+@function([], object, pass_row=True)
+def metas(context):
+    return context.entry.meta

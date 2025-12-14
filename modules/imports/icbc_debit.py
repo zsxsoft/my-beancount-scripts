@@ -27,7 +27,7 @@ class ICBCDebit():
         if '中国工商银行' not in title:
             raise RuntimeError('Not ICBC!')
         self.content = content
-        self.deduplicate = Deduplicate(entries, option_map)
+        self.deduplicate = Deduplicate(entries, option_map, self.__class__.__name__)
 
     def change_currency(self, currency):
         if currency == 'RMB':

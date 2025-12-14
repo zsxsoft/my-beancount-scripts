@@ -20,7 +20,7 @@ Account支付宝 = 'Assets:Company:Alipay:StupidAlipay'
 class Alipay(Base):
 
     def __init__(self, filename, byte_content, entries, option_map):
-        if re.search(r'alipay_record_.*\.zip$', filename):
+        if re.search(r'支付宝交易明细.*\.zip$', filename):
             z = ZipFile(BytesIO(byte_content), 'r')
             filelist = z.namelist()
             if len(filelist) == 1 and re.search(r'alipay_record.*\.csv$', filelist[0]):
@@ -32,7 +32,7 @@ class Alipay(Base):
         print('Import Alipay: ' + lines[2])
         content = "\n".join(lines[4:len(lines) - 8])
         self.content = content
-        self.deduplicate = Deduplicate(entries, option_map)
+        self.deduplicate = Deduplicate(entries, option_map, self.__class__.__name__)
 
     def parse(self):
         content = self.content
@@ -81,17 +81,17 @@ class Alipay(Base):
             )
             price = row['金额（元）']
             money_status = row['资金状态']
-            if money_status == '已支出':
+            if money_status == '已支出' or (row['交易状态'] == '交易成功' and money_status == ''):
                 data.create_simple_posting(entry, Account支付宝, None, None)
                 amount = -amount
+            elif row['交易状态'] == '退款成功':
+                # 收钱码收款时，退款成功时资金状态为已支出
+                price = '-' + price
+                data.create_simple_posting(entry, Account支付宝, None, None)
             elif money_status == '资金转移':
                 data.create_simple_posting(entry, Account支付宝, None, None)
             elif money_status == '已收入':
-                if row['交易状态'] == '退款成功':
-                    # 收钱码收款时，退款成功时资金状态为已支出
-                    price = '-' + price
-                    data.create_simple_posting(entry, Account支付宝, None, None)
-                else:
+                if not row['交易状态'] == '退款成功':
                     income = get_income_account_by_guess(
                         row['交易对方'], row['商品名称'], time)
                     if income == 'Income:Unknown':

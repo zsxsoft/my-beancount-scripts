@@ -21,8 +21,9 @@ class ICBCCredit():
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('eml'):
             raise RuntimeError('Not ICBC!')
-        parsed_eml = eml_parser.eml_parser.decode_email_b(
-            byte_content, include_raw_body=True)
+        ep = eml_parser.EmlParser()
+        ep.include_raw_body = True
+        parsed_eml = ep.decode_email_bytes(byte_content)
         title = parsed_eml['header']['subject']
         content = ''
         if not '中国工商银行' in title:
@@ -31,7 +32,7 @@ class ICBCCredit():
             content += body['content']
         self.soup = BeautifulSoup(content, 'html.parser')
         self.content = content
-        self.deduplicate = Deduplicate(entries, option_map)
+        self.deduplicate = Deduplicate(entries, option_map, self.__class__.__name__)
 
     def get_currency(self, currency_text):
         currency = currency_text.strip()

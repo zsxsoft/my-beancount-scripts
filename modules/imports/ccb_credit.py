@@ -4,7 +4,7 @@ from datetime import date
 from io import StringIO
 
 import dateparser
-from eml_parser import eml_parser
+import eml_parser
 from beancount.core import data
 from beancount.core.data import Note, Transaction
 from bs4 import BeautifulSoup
@@ -22,7 +22,9 @@ class CCBCredit():
     def __init__(self, filename, byte_content, entries, option_map):
         if not filename.endswith('eml'):
             raise 'Not CCB!'
-        parsed_eml = eml_parser.decode_email_b(byte_content, include_raw_body=True)
+        ep = eml_parser.EmlParser()
+        ep.include_raw_body = True
+        parsed_eml = ep.decode_email_bytes(byte_content)
         title = parsed_eml['header']['subject']
         content = ''
         if not '中国建设银行信用卡' in title:
@@ -31,7 +33,7 @@ class CCBCredit():
             content += body['content']
         self.soup = BeautifulSoup(content, 'html.parser')
         self.content = content
-        self.deduplicate = Deduplicate(entries, option_map)
+        self.deduplicate = Deduplicate(entries, option_map, self.__class__.__name__)
 
     def get_date(self, detail_date):
         year = int(detail_date[0:4])

@@ -13,7 +13,7 @@ from . import (DictReaderStrip, get_account_by_guess,
 from .base import Base
 from .deduplicate import Deduplicate
 
-Account余额宝 = 'Assets:Company:Alipay:MonetaryFund'
+Account余额宝 = 'Assets:Company:Alipay:Yuebao'
 incomes = ['余额自动转入', '收益', '单次转入']
 
 
@@ -29,7 +29,7 @@ class YuEBao(Base):
             raise RuntimeError('Not YuEBao!')
         self.book = data
         self.table = table
-        self.deduplicate = Deduplicate(entries, option_map)
+        self.deduplicate = Deduplicate(entries, option_map, self.__class__.__name__)
 
     def parse(self):
         table = self.table
