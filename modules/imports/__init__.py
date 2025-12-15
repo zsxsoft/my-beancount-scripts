@@ -2,7 +2,6 @@ from collections import namedtuple
 from beanquery import query, query_compile
 from beanquery.query_env import function
 from ..accounts import *
-from ..ai_guess import ai_guess
 from .deduplicate import (
     clear_unmatched,
     write_unmatched_report,
@@ -49,13 +48,7 @@ def get_account_by_guess(from_user, description, time=None):
             else:
                 return value
             break
-    #return "Expenses:Unknown"
-    try:
-        if from_user == "":
-            return ai_guess(description)
-        return ai_guess(description) #ai_guess("于" + from_user + "购买的" + description)
-    except Exception as e:
-        return "Expenses:Unknown"
+    return "Expenses:Unknown"
 
 
 def get_income_account_by_guess(from_user, description, time=None):
