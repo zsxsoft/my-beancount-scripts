@@ -1,0 +1,32 @@
+[project]
+name = "fabografo"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "aiohttp>=3.13.2",
+    "beancount>=3.2.0",
+    "beanprice>=2.1.0",
+    "beanquery==0.1.0",
+    "beautifulsoup4>=4.14.3",
+    "cryptography>=46.0.3",
+    "curl-cffi>=0.14.0",
+    "dateparser>=1.2.2",
+    "dotenv>=0.9.9",
+    "eml-parser>=2.0.0",
+    "fava>=1.30.9",
+    "lxml>=6.0.2",
+    "openai>=2.14.0",
+    "openpyxl>=3.1.5",
+    "prompt-toolkit>=3.0.52",
+    "pypdf>=6.5.0",
+    "pyzipper>=0.3.6",
+    "requests>=2.32.5",
+    "tqdm>=4.67.1",
+    "xlrd>=2.0.2",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
