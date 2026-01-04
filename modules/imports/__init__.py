@@ -1,32 +1,16 @@
-from collections import namedtuple
 from beanquery import query, query_compile
 from beanquery.query_env import function
 from ..accounts import *
+from .utils import *
+import csv
+
+# 导出未匹配交易相关函数
 from .deduplicate import (
     clear_unmatched,
     write_unmatched_report,
     get_unmatched_imported,
     get_unmatched_beancount
 )
-import csv
-
-def get_object_bql_result(ret):
-    rtypes, rvalues = ret
-    ret = []
-    keys = []
-    for k in rtypes:
-        keys.append(k[0])
-    for v in rvalues:
-        d = {}
-        i = 0
-        for vv in v:
-            if isinstance(vv, int) or isinstance(vv, float) or vv == None:
-                vv = str(vv)
-            d[keys[i]] = vv
-            i += 1
-        t = namedtuple('Struct', keys)(**d)
-        ret.append(t)
-    return ret
 
 def replace_flag(entry, flag):
     return entry._replace(flag='!')

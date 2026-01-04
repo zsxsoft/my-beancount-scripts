@@ -7,23 +7,7 @@ from beancount.parser import printer
 from beanquery import query
 
 from ..accounts import public_accounts
-
-
-def _get_object_bql_result(ret):
-    """内部使用的BQL结果转换函数，避免循环导入"""
-    rtypes, rvalues = ret
-    result = []
-    keys = [k[0] for k in rtypes]
-    for v in rvalues:
-        d = {}
-        for i, vv in enumerate(v):
-            if isinstance(vv, int) or isinstance(vv, float) or vv is None:
-                vv = str(vv)
-            d[keys[i]] = vv
-        t = namedtuple('Struct', keys)(**d)
-        result.append(t)
-    return result
-
+from .utils import *
 
 # 全局未匹配交易收集器
 _unmatched_imported = []  # 导入账单中未匹配的交易
@@ -95,7 +79,7 @@ class Deduplicate:
         bql = "SELECT flag, filename, lineno, location, account, year, month, day, str(entry_meta('timestamp')) as timestamp, metas() as metas WHERE year = {} AND month = {} AND day = {} AND number(convert(units(position), '{}')) = {} ORDER BY timestamp ASC".format(
             entry.date.year, entry.date.month, entry.date.day, currency, money)
         items = query.run_query(self.entries, self.option_map, bql)
-        items = _get_object_bql_result(items)
+        items = get_object_bql_result(items)
         length = len(items)
         if (length == 0):
             # 精确匹配失败，尝试子集和匹配
@@ -176,7 +160,7 @@ class Deduplicate:
             currency, entry.date.year, entry.date.month, entry.date.day, replace_account)
         
         items = query.run_query(self.entries, self.option_map, bql)
-        items = _get_object_bql_result(items)
+        items = get_object_bql_result(items)
         
         if len(items) == 0:
             return False
@@ -255,7 +239,7 @@ class Deduplicate:
                  ORDER BY date DESC""".format(currency, replace_account, date_filter)
         
         items = query.run_query(self.entries, self.option_map, bql)
-        items = _get_object_bql_result(items)
+        items = get_object_bql_result(items)
         
         for item in items:
             if item.location not in _matched_beancount_locations:
